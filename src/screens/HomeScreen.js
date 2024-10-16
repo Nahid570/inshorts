@@ -1,6 +1,13 @@
 import React, {useState} from 'react';
-import {View, Text, FlatList, Dimensions, StyleSheet} from 'react-native';
-import Swipeable from 'react-native-gesture-handler/Swipeable';
+import {
+  View,
+  Text,
+  FlatList,
+  Dimensions,
+  StyleSheet,
+  Button,
+} from 'react-native';
+import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 
 const {width, height} = Dimensions.get('window');
 
@@ -12,38 +19,50 @@ const newsData = [
 
 export default function HomeScreen() {
   const [currentNews, setCurrentNews] = useState(newsData[0]);
-  const [isShowingDetails, setIsShowingDetails] = useState(false); // Track if details screen is visible
+  const [isShowingDetails, setIsShowingDetails] = useState(false);
+  const swipeableRefs = React.useRef({});
 
-  // Render for the details screen
+  const handleGoBack = id => {
+    setIsShowingDetails(false);
+    if (swipeableRefs.current[id]) {
+      swipeableRefs.current[id].close();
+    }
+  };
+
   const renderDetailsScreen = news => (
     <View style={styles.detailsScreen}>
+      <Button title="Go Back" onPress={() => handleGoBack(news.id)} />
       <Text style={styles.detailsTitle}>Details of {news.title}</Text>
       <Text>{news.details}</Text>
     </View>
   );
 
-  // Render for each news item with Swipeable for individual swipe handling
-  const renderNewsItem = ({item}) => (
-    <Swipeable
-      renderRightActions={() => renderDetailsScreen(item)}
-      overshootFriction={8}
-      onSwipeableWillOpen={() => {
-        setCurrentNews(item);
-        setIsShowingDetails(true);
-      }}
-      onSwipeableWillClose={() => setIsShowingDetails(false)}
-      rightThreshold={100}>
-      <View style={styles.newsItem}>
-        <Text style={styles.newsTitle}>{item.title}</Text>
-      </View>
-    </Swipeable>
-  );
+  const renderNewsItem = ({item}) => {
+    return (
+      <Swipeable
+        ref={ref => {
+          swipeableRefs.current[item.id] = ref;
+        }}
+        renderRightActions={() => renderDetailsScreen(item)}
+        overshootFriction={8}
+        onSwipeableWillOpen={() => {
+          setCurrentNews(item);
+          setIsShowingDetails(true);
+        }}
+        onSwipeableWillClose={() => setIsShowingDetails(false)}
+        rightThreshold={100}>
+        <View style={styles.newsItem}>
+          <Text style={styles.newsTitle}>{item.title}</Text>
+        </View>
+      </Swipeable>
+    );
+  };
 
   return (
     <FlatList
       data={newsData}
       keyExtractor={item => item.id}
-      renderItem={renderNewsItem} // Render the swipeable news items
+      renderItem={renderNewsItem}
       pagingEnabled
       showsVerticalScrollIndicator={false}
       scrollEnabled={!isShowingDetails}
