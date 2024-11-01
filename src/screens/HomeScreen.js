@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -12,30 +12,45 @@ import Swipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
 const {width, height} = Dimensions.get('window');
 
 const newsData = [
-  {id: '1', title: 'News 1', details: 'Details of News 1'},
-  {id: '2', title: 'News 2', details: 'Details of News 2'},
-  {id: '3', title: 'News 3', details: 'Details of News 3'},
+  {
+    id: '1',
+    title: 'News 1',
+    details: Array.from({length: 60}).map((_, index) => `Item ${index + 1}`),
+  },
+  {
+    id: '2',
+    title: 'News 2',
+    details: Array.from({length: 60}).map((_, index) => `Item ${index + 1}`),
+  },
+  {
+    id: '3',
+    title: 'News 3',
+    details: Array.from({length: 60}).map((_, index) => `Item ${index + 1}`),
+  },
 ];
 
-export default function HomeScreen() {
-  const [currentNews, setCurrentNews] = useState(newsData[0]);
-  const [isShowingDetails, setIsShowingDetails] = useState(false);
+export default function HomeScreen({navigation}) {
+  // const [currentNews, setCurrentNews] = useState(newsData[0]);
+  // const [isShowingDetails, setIsShowingDetails] = useState(false);
   const swipeableRefs = React.useRef({});
 
-  const handleGoBack = id => {
-    setIsShowingDetails(false);
-    if (swipeableRefs.current[id]) {
-      swipeableRefs.current[id].close();
-    }
-  };
+  // const handleGoBack = id => {
+  //   // setIsShowingDetails(false);
+  //   if (swipeableRefs.current[id]) {
+  //     swipeableRefs.current[id].close();
+  //   }
+  // };
 
-  const renderDetailsScreen = news => (
-    <View style={styles.detailsScreen}>
-      <Button title="Go Back" onPress={() => handleGoBack(news.id)} />
-      <Text style={styles.detailsTitle}>Details of {news.title}</Text>
-      <Text>{news.details}</Text>
-    </View>
-  );
+  // const renderDetailsScreen = news => (
+  //   <View style={styles.detailsScreen}>
+  //     <Button title="Go Back" onPress={() => handleGoBack(news.id)} />
+  //     <ScrollView showsVerticalScrollIndicator={false}>
+  //       {news.details.map(item => (
+  //         <Text key={item}>{item}</Text>
+  //       ))}
+  //     </ScrollView>
+  //   </View>
+  // );
 
   const renderNewsItem = ({item}) => {
     return (
@@ -43,13 +58,17 @@ export default function HomeScreen() {
         ref={ref => {
           swipeableRefs.current[item.id] = ref;
         }}
-        renderRightActions={() => renderDetailsScreen(item)}
+        // renderRightActions={() => renderDetailsScreen(item)}
         overshootFriction={8}
         onSwipeableWillOpen={() => {
-          setCurrentNews(item);
-          setIsShowingDetails(true);
+          // setCurrentNews(item);
+          navigation.navigate('details', {news: item});
+          if (swipeableRefs.current[item.id]) {
+            swipeableRefs.current[item.id].close();
+          }
+          // setIsShowingDetails(true);
         }}
-        onSwipeableWillClose={() => setIsShowingDetails(false)}
+        onSwipeableWillClose={() => null}
         rightThreshold={100}>
         <View style={styles.newsItem}>
           <Text style={styles.newsTitle}>{item.title}</Text>
@@ -65,7 +84,7 @@ export default function HomeScreen() {
       renderItem={renderNewsItem}
       pagingEnabled
       showsVerticalScrollIndicator={false}
-      scrollEnabled={!isShowingDetails}
+      // scrollEnabled={!isShowingDetails}
       style={styles.newsFeed}
     />
   );
@@ -91,7 +110,7 @@ const styles = StyleSheet.create({
   detailsScreen: {
     flex: 1,
     width,
-    padding: 20,
+    padding: 10,
     backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
